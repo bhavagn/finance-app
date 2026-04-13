@@ -9,7 +9,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('SESSION:', session)
+      console.log('ERROR:', error)
+      console.log('URL HASH:', window.location.hash)
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
