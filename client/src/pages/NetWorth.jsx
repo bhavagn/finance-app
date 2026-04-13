@@ -4,8 +4,7 @@ import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import NetWorthCharts from '../components/app/NetWorthCharts'
 import NetWorthDialog from '../components/app/NetWorthDialog'
-
-const API = 'http://localhost:3001/api'
+import { api } from '../lib/api'
 
 export const INR = (v) =>
   Number(v).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })
@@ -51,14 +50,12 @@ export default function NetWorth() {
     setLoading(true)
     setError(null)
     try {
-      const [r1, r2] = await Promise.all([
-        fetch(`${API}/networth`).then((r) => r.json()),
-        fetch(`${API}/networth/latest`).then((r) => r.json()),
+      const [snapshots, latest] = await Promise.all([
+        api.get('/networth'),
+        api.get('/networth/latest'),
       ])
-      if (r1.error) throw new Error(r1.error)
-      if (r2.error) throw new Error(r2.error)
-      setSnapshots(r1.data || [])
-      setLatest(r2.data)
+      setSnapshots(snapshots || [])
+      setLatest(latest)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -72,13 +69,7 @@ export default function NetWorth() {
   function openEdit(s) { setEditSnapshot(s); setDialogOpen(true) }
 
   async function handleSave(month, values) {
-    const res = await fetch(`${API}/networth/${month}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-    const json = await res.json()
-    if (json.error) throw new Error(json.error)
+    await api.post(`/networth/${month}`, values)
     setDialogOpen(false)
     load()
   }
