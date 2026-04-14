@@ -3,7 +3,14 @@ import { supabase } from './supabase'
 const BASE_URL = import.meta.env.VITE_API_URL
 
 async function request(path, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession()
+  let { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const { data } = await supabase.auth.getSession()
+    session = data.session
+  }
+
   const token = session?.access_token
 
   const headers = { ...options.headers }
